@@ -6,5 +6,4 @@ face-recognition
 opencv-python
 PyPDF2
 numpy
-tensorflow
-scikit-learn
+Gunicorn
