@@ -1,1 +1,10 @@
 Flask
+Flask-Cors
+qrcode
+requests
+face-recognition
+opencv-python
+PyPDF2
+numpy
+tensorflow
+scikit-learn
