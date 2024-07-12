@@ -1,6 +1,6 @@
-dlib==19.22.99
-face-recognition==1.3.0
-face-recognition-models==0.3.0
+dlib
+face-recognition
+face-recognition-models
 Flask
 Flask-Cors
 qrcode
