@@ -14,10 +14,7 @@ import os
 from io import BytesIO
 import os
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras import layers, models
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from sklearn.model_selection import train_test_split
+
 
 # Specify the allowed origin
 #they are used for send data from server to client and client to server.They are highly used for api's callings
@@ -150,93 +147,5 @@ def encrypt_pdf():
           pdf_writer.write(output_file)
 
   return "Done"
-
-@app.route('/document_classification',methods=['GET'])
-def document_classification():
-
-  document_name=request.args.get("param1")
-
-  # Define paths
-  dataset_path = 'dataset'  # Path to your dataset directory
-  genuine_path = os.path.join(dataset_path, 'genuine')
-  forged_path = os.path.join(dataset_path, 'forged')
-
-  # Load genuine images
-  genuine_images = []
-  for filename in os.listdir(genuine_path):
-    img = tf.keras.preprocessing.image.load_img(
-    os.path.join(genuine_path, filename), target_size=(150, 150))
-    img_array = tf.keras.preprocessing.image.img_to_array(img)
-    genuine_images.append(img_array)
-  genuine_images = np.array(genuine_images)
-  genuine_labels = np.ones(len(genuine_images))  # Assign label 1 for genuine documents
-
-  # Load forged images
-  forged_images = []
-  for filename in os.listdir(forged_path):
-    img = tf.keras.preprocessing.image.load_img(
-    os.path.join(forged_path, filename), target_size=(150, 150))
-    img_array = tf.keras.preprocessing.image.img_to_array(img)
-    forged_images.append(img_array)
-  forged_images = np.array(forged_images)
-  forged_labels = np.zeros(len(forged_images))  # Assign label 0 for forged documents
-
-# Concatenate genuine and forged images and labels
-  all_images = np.concatenate([genuine_images, forged_images], axis=0)
-  all_labels = np.concatenate([genuine_labels, forged_labels], axis=0)
-
-# Split the dataset into training and testing sets
-  train_data, test_data, train_labels, test_labels = train_test_split(
-    all_images, all_labels, test_size=0.2, random_state=42)
-
-  # Define the CNN model
-  model = models.Sequential([
-    layers.Conv2D(32, (3, 3), activation='relu', input_shape=(150, 150, 3)),
-    layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(64, (3, 3), activation='relu'),
-    layers.MaxPooling2D((2, 2)),
-
-    layers.Conv2D(128, (3, 3), activation='relu'),
-    layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(128, (3, 3), activation='relu'),
-    layers.MaxPooling2D((2, 2)),
-    layers.Flatten(),
-    layers.Dense(512, activation='relu'),
-    layers.Dense(1, activation='sigmoid')
-])
-
-  # Compile the model
-  model.compile(optimizer='adam',
-              loss='binary_crossentropy',
-              metrics=['accuracy'])
-
-# Train the model
-  history = model.fit(train_data, train_labels, epochs=10, batch_size=32, validation_split=0.2)
-  # Load and preprocess the document image
-  document_path = 'forged-type01-001.tif'  # Replace 'path_to_your_document.jpg' with the path to your document image
-  img = load_img(document_path, target_size=(150, 150))
-  img_array = img_to_array(img)
-  img_array = img_array / 255.0  # Normalize pixel values
-  document = np.expand_dims(img_array, axis=0)
-
-  # Load the trained model
-  #model = tf.keras.models.load_model('path_to_your_trained_model.h5')  # Replace 'path_to_your_trained_model.h5' with the path to your trained model file
-
-  # Make prediction
-  prediction = model.predict(document)[0][0]
-  predicted_label = round(prediction)
-
-  # Define class names
-  class_names = ['Forged', 'Genuine']
-
-  # Display the document image and prediction result
-  plt.imshow(img)  # Display the document image
-  plt.title(f'Predicted: {class_names[int(predicted_label)]}')
-  plt.axis('off')
-  plt.show()
-
-  # Evaluate the model
-  #test_loss, test_acc = model.evaluate(test_data, test_labels)
-#print('Test accuracy:', test_acc*100)
-
+    
 app.run()
